@@ -34,9 +34,21 @@ class User(AbstractUser):
         return self.username
 
 
+class Cliente(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cliente')
+    nombre = models.CharField(max_length=100)
+    email = models.EmailField()
+    telefono = models.CharField(max_length=15)
+    fecha_nacimiento = models.DateField()
+    fecha_registro = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return self.nombre
+
+
 class Review(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    reserva = models.ForeignKey('talkmaniaApp.Reserva', on_delete=models.CASCADE, related_name='reviews')
+    reserva = models.ForeignKey('HotelesApp.Reserva', on_delete=models.CASCADE, related_name='reviews')
     calificacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     comentario = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)

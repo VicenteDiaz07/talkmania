@@ -8,8 +8,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.utils import timezone
 from .forms import RegistroForm, LoginForm, ReviewForm
-from .models import User, Review
-from talkmaniaApp.models import Reserva, Cliente
+from .models import User, Review, Cliente
+from HotelesApp.models import Reserva
 import qrcode
 from io import BytesIO
 import base64
@@ -124,7 +124,7 @@ def crear_review(request, reserva_id):
     
     # Verificar que la reserva pertenezca al usuario
     try:
-        if reserva.Cliente.user != request.user:
+        if reserva.cliente.user != request.user:
             messages.error(request, 'Esta reserva no te pertenece.')
             return redirect('historial_reservas')
     except AttributeError:
@@ -165,7 +165,7 @@ def historial_reservas(request):
     
     try:
         cliente = request.user.cliente
-        reservas = Reserva.objects.filter(Cliente=cliente).order_by('-fecha_reserva')
+        reservas = Reserva.objects.filter(cliente=cliente).order_by('-fecha_reserva')
         
         # Calcular estadísticas
         reservas_completadas = reservas.filter(estado=True).count()
@@ -220,14 +220,14 @@ def generar_qr_reserva(request, reserva_id):
     
     # Verificar que la reserva pertenezca al usuario (opcional)
     try:
-        if reserva.Cliente.user != request.user and request.user.rol not in ['administrador', 'staff']:
+        if reserva.cliente.user != request.user and request.user.rol not in ['administrador', 'staff']:
             messages.error(request, 'No tienes permisos para ver este QR.')
             return redirect('historial_reservas')
     except AttributeError:
         pass
     
     # Generar QR con información de la reserva
-    qr_data = f"RESERVA-{reserva.id}-{reserva.Cliente.id}"
+    qr_data = f"RESERVA-{reserva.id}-{reserva.cliente.id}"
     qr = qrcode.make(qr_data)
     buffer = BytesIO()
     qr.save(buffer, format='PNG')

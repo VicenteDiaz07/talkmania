@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class TalkmaniaappConfig(AppConfig):
+class ReservasappConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'talkmaniaApp'
+    name = 'ReservasApp'
