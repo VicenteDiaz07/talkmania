@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ hotel.nombre }} - Disponibilidad{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .hotel-header-card {
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .room-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        height: 100%;
+    }
+    .room-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .room-img {
+        height: 200px;
+        object-fit: cover;
+        border-top-left-radius: calc(0.375rem - 1px);
+        border-top-right-radius: calc(0.375rem - 1px);
+    }
+    .price-tag {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <a href="{% url 'vista_hotel' %}" class="btn btn-link text-decoration-none mb-3 ps-0">
+        <i class="fas fa-arrow-left me-2"></i>Volver a Hoteles
+    </a>
+    
+    <div class="hotel-header-card text-center">
+        <h1 class="display-4 fw-bold">{{ hotel.nombre }}</h1>
+        <p class="lead mb-0"><i class="fas fa-map-marker-alt me-2"></i>{{ hotel.direccion }}</p>
+        <div class="mt-3">
+            {% for i in "12345"|make_list %}
+                {% if forloop.counter <= hotel.estrellas %}
+                    <i class="fas fa-star text-warning"></i>
+                {% else %}
+                    <i class="far fa-star text-warning"></i>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0">Habitaciones Disponibles</h2>
+        <span class="badge bg-primary rounded-pill">{{ habitaciones|length }} opciones</span>
+    </div>
+    
+    {% if habitaciones %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for habitacion in habitaciones %}
+            <div class="col">
+                <div class="card room-card h-100">
+                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" class="card-img-top room-img" alt="Habitación">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ habitacion.get_tipo_display }}</h5>
+                            <span class="badge bg-success bg-opacity-10 text-success">Disponible</span>
+                        </div>
+                        <p class="card-text text-muted small mb-3">Habitación #{{ habitacion.numero }}</p>
+                        <ul class="list-unstyled small text-muted mb-4 flex-grow-1">
+                            <li class="mb-1"><i class="fas fa-wifi me-2"></i>Wifi Gratis</li>
+                            <li class="mb-1"><i class="fas fa-tv me-2"></i>TV Cable</li>
+                            <li><i class="fas fa-wind me-2"></i>Aire Acondicionado</li>
+                        </ul>
+                        <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Precio por noche</small>
+                                <span class="price-tag">CLP {{ habitacion.precio }}</span>
+                            </div>
+                            <button class="btn btn-primary px-4 rounded-pill">Reservar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>
+                No hay habitaciones disponibles en este momento para este hotel.
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
