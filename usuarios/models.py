@@ -46,15 +46,3 @@ class Cliente(models.Model):
         return self.nombre
 
 
-class Review(models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    reserva = models.ForeignKey('HotelesApp.Reserva', on_delete=models.CASCADE, related_name='reviews')
-    calificacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
-    comentario = models.TextField()
-    fecha = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['usuario', 'reserva']
-    
-    def __str__(self):
-        return f"Review de {self.usuario.username} - {self.calificacion}★"
