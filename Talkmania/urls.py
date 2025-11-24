@@ -29,6 +29,8 @@ urlpatterns = [
     path('hoteles/crear/', crear_hotel, name='crear_hotel'),
     path('hoteles/editar/<int:hotel_id>/', editar_hotel, name='editar_hotel'),
     path('hoteles/eliminar/<int:hotel_id>/', eliminar_hotel, name='eliminar_hotel'),
-    path('hoteles/agregar-habitacion/', agregar_habitacion, name='agregar_habitacion'),
+    path('hoteles/<int:hotel_id>/habitaciones/agregar/', agregar_habitacion, name='agregar_habitacion'),
+    path('habitaciones/editar/<int:habitacion_id>/', editar_habitacion, name='editar_habitacion'),
+    path('habitaciones/eliminar/<int:habitacion_id>/', eliminar_habitacion, name='eliminar_habitacion'),
     path('hoteles/reservar/<int:habitacion_id>/', confirmar_reserva, name='confirmar_reserva'),
 ]

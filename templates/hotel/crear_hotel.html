@@ -1,87 +1,280 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Crear Hotel{% endblock %}
+{% block title %}Crear Hotel - Talkmania{% endblock %}
 
-{% block header %}Crear Nuevo Hotel{% endblock %}
+{% block extra_css %}
+<style>
+    .create-hotel-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    
+    .create-hotel-modal {
+        background: #6B5B95;
+        border-radius: 30px;
+        padding: 50px 40px;
+        max-width: 600px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+    
+    .modal-title {
+        color: white;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .modal-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 16px;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        color: white;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px 18px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .form-control:focus {
+        outline: none;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(126, 217, 87, 0.3);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .rating-input {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    
+    .rating-input label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    
+    .rating-input input[type="radio"] {
+        display: none;
+    }
+    
+    .rating-input input[type="radio"]:checked + label {
+        background: #7ED957;
+    }
+    
+    .rating-star {
+        color: #FFD700;
+        font-size: 18px;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+    }
+    
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        background: #7ED957;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s;
+    }
+    
+    .btn-submit:hover {
+        background: #6BC847;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(126, 217, 87, 0.4);
+    }
+    
+    .btn-cancel {
+        width: 100%;
+        padding: 14px;
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: white;
+        color: white;
+    }
+    
+    .errorlist {
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        list-style: none;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block header %}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">🏨 Crear Nuevo Hotel</h3>
+<div class="create-hotel-container">
+    <div class="create-hotel-modal">
+        <div class="modal-header">
+            <h1 class="modal-title">🏨 Crear Nuevo Hotel</h1>
+            <p class="modal-subtitle">Completa la información del hotel</p>
         </div>
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
-                        {{ form.nombre }}
-                        {% if form.nombre.errors %}
-                            <div class="text-danger">{{ form.nombre.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger">{{ form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}</label>
-                        {{ form.telefono }}
-                        {% if form.telefono.errors %}
-                            <div class="text-danger">{{ form.telefono.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.estrellas.id_for_label }}" class="form-label">{{ form.estrellas.label }}</label>
-                        {{ form.estrellas }}
-                        {% if form.estrellas.errors %}
-                            <div class="text-danger">{{ form.estrellas.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
-                    {{ form.direccion }}
-                    {% if form.direccion.errors %}
-                        <div class="text-danger">{{ form.direccion.errors }}</div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.nombre.id_for_label }}">Nombre del Hotel</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.nombre.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
                     {% endif %}
                 </div>
                 
-                <div class="mb-3">
-                    <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
-                    {{ form.descripcion }}
-                    {% if form.descripcion.errors %}
-                        <div class="text-danger">{{ form.descripcion.errors }}</div>
+                <div class="form-group">
+                    <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.telefono.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
                     {% endif %}
                 </div>
-                
-                <div class="mb-3 form-check">
-                    {{ form.estado }}
-                    <label class="form-check-label" for="{{ form.estado.id_for_label }}">
-                        {{ form.estado.label }}
-                    </label>
-                    {% if form.estado.errors %}
-                        <div class="text-danger">{{ form.estado.errors }}</div>
-                    {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.direccion.id_for_label }}">Dirección</label>
+                {{ form.direccion }}
+                {% if form.direccion.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.direccion.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>Calificación (Estrellas)</label>
+                <div class="rating-input">
+                    {% for value, label in form.estrellas.field.choices %}
+                        <input type="radio" name="estrellas" value="{{ value }}" id="star_{{ value }}" {% if form.estrellas.value == value %}checked{% endif %}>
+                        <label for="star_{{ value }}">
+                            <span class="rating-star">★</span> {{ value }}
+                        </label>
+                    {% endfor %}
                 </div>
-                
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">✅ Crear Hotel</button>
-                    <a href="{% url 'vista_hotel' %}" class="btn btn-secondary">❌ Cancelar</a>
-                </div>
-            </form>
-        </div>
+                {% if form.estrellas.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.estrellas.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.descripcion.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="checkbox-group">
+                {{ form.estado }}
+                <label for="{{ form.estado.id_for_label }}">Hotel activo y visible</label>
+            </div>
+            {% if form.estado.errors %}
+                <ul class="errorlist">
+                    {% for error in form.estado.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+            
+            <button type="submit" class="btn-submit">✅ Crear Hotel</button>
+            <a href="{% url 'vista_hotel' %}" class="btn-cancel">❌ Cancelar</a>
+        </form>
     </div>
 </div>
 {% endblock %}

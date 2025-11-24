@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Habitación #{{ habitacion.numero }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    
+    .delete-modal {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    
+    .delete-icon {
+        width: 80px;
+        height: 80px;
+        background: #FEE;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+    }
+    
+    .delete-icon i {
+        font-size: 40px;
+        color: #DC3545;
+    }
+    
+    .delete-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .delete-message {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .room-info {
+        background: #F8F9FA;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 25px 0;
+    }
+    
+    .room-info h4 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    
+    .room-detail {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #E0E0E0;
+    }
+    
+    .room-detail:last-child {
+        border-bottom: none;
+    }
+    
+    .room-detail-label {
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .room-detail-value {
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .btn-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    .btn-delete-confirm {
+        flex: 1;
+        padding: 14px;
+        background: #DC3545;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-delete-confirm:hover {
+        background: #C82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-cancel-delete {
+        flex: 1;
+        padding: 14px;
+        background: #6C757D;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-cancel-delete:hover {
+        background: #5A6268;
+        transform: translateY(-2px);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-modal">
+        <div class="delete-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="delete-title">¿Eliminar Habitación?</h1>
+        <p class="delete-message">Esta acción no se puede deshacer</p>
+        
+        <div class="room-info">
+            <h4>Información de la Habitación</h4>
+            <div class="room-detail">
+                <span class="room-detail-label">Hotel:</span>
+                <span class="room-detail-value">{{ hotel.nombre }}</span>
+            </div>
+            <div class="room-detail">
+                <span class="room-detail-label">Número:</span>
+                <span class="room-detail-value">#{{ habitacion.numero }}</span>
+            </div>
+            <div class="room-detail">
+                <span class="room-detail-label">Tipo:</span>
+                <span class="room-detail-value">{{ habitacion.get_tipo_display }}</span>
+            </div>
+            <div class="room-detail">
+                <span class="room-detail-label">Precio:</span>
+                <span class="room-detail-value">CLP {{ habitacion.precio }}</span>
+            </div>
+            <div class="room-detail">
+                <span class="room-detail-label">Estado:</span>
+                <span class="room-detail-value">{{ habitacion.get_estado_display }}</span>
+            </div>
+        </div>
+        
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <div class="btn-actions">
+                <a href="{% url 'detalle_hotel' hotel.id %}" class="btn-cancel-delete">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-delete-confirm">
+                    Sí, Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Agregar Habitación - {{ hotel.nombre }}{% endblock %}
+{% block title %}Editar Habitación #{{ habitacion.numero }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -126,7 +126,7 @@
 <div class="form-container">
     <div class="form-modal">
         <div class="modal-header">
-            <h1 class="modal-title">🛏️ Agregar Habitación</h1>
+            <h1 class="modal-title">✏️ Editar Habitación #{{ habitacion.numero }}</h1>
             <p class="modal-subtitle">{{ hotel.nombre }}</p>
         </div>
         
@@ -177,7 +177,7 @@
                 {% endif %}
             </div>
             
-            <button type="submit" class="btn-submit">✅ Agregar Habitación</button>
+            <button type="submit" class="btn-submit">💾 Guardar Cambios</button>
             <a href="{% url 'detalle_hotel' hotel.id %}" class="btn-cancel">❌ Cancelar</a>
         </form>
     </div>

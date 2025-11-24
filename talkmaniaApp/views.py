@@ -12,24 +12,82 @@ def vista_hotel(request):
 
 def vista_detalle_hotel(request, hotel_id):
     hotel = Hotel.objects.get(id=hotel_id)
-    # Logic to get 6 available rooms. 
-    # For now, we can filter by the hotel and limit to 6, or create mock data if not enough rooms exist.
-    # Assuming we want to show actual rooms from DB if possible, but ensuring 6 are shown as requested.
     habitaciones = Habitacion.objects.filter(hotel=hotel, estado='D')[:6]
     
-    return render(request, 'hotel/detalle_hotel.html', {'hotel': hotel, 'habitaciones': habitaciones})
+    # Verificar si el usuario es admin del hotel
+    is_hotel_admin = False
+    if request.user.is_authenticated and request.user.rol == 'administrador':
+        if hotel.admin == request.user or request.user.is_superuser:
+            is_hotel_admin = True
+    
+    return render(request, 'hotel/detalle_hotel.html', {
+        'hotel': hotel,
+        'habitaciones': habitaciones,
+        'is_hotel_admin': is_hotel_admin
+    })
 
-def agregar_habitacion(request):
+# CRUD de Habitaciones
+@login_required
+def agregar_habitacion(request, hotel_id):
+    hotel = get_object_or_404(Hotel, id=hotel_id)
+    
+    # Verificar que el usuario sea admin y sea el dueño del hotel o superadmin
+    if request.user.rol != 'administrador' or (hotel.admin != request.user and not request.user.is_superuser):
+        messages.error(request, 'No tienes permisos para agregar habitaciones a este hotel.')
+        return redirect('detalle_hotel', hotel_id=hotel.id)
+    
     if request.method == 'POST':
         form = HabitacionForm(request.POST)
         if form.is_valid():
-            habitacion = form.save()
-            messages.success(request, f'Habitación {habitacion.numero} agregada exitosamente.')
-            return redirect('detalle_hotel', hotel_id=habitacion.hotel.id)
+            habitacion = form.save(commit=False)
+            habitacion.hotel = hotel  # Asignar el hotel automáticamente
+            habitacion.save()
+            messages.success(request, f'Habitación #{habitacion.numero} agregada exitosamente.')
+            return redirect('detalle_hotel', hotel_id=hotel.id)
     else:
-        form = HabitacionForm()
+        # Pre-seleccionar el hotel en el formulario
+        form = HabitacionForm(initial={'hotel': hotel})
     
-    return render(request, 'hotel/agregar_habitacion.html', {'form': form})
+    return render(request, 'hotel/agregar_habitacion.html', {'form': form, 'hotel': hotel})
+
+@login_required
+def editar_habitacion(request, habitacion_id):
+    habitacion = get_object_or_404(Habitacion, id=habitacion_id)
+    hotel = habitacion.hotel
+    
+    # Verificar que el usuario sea admin y sea el dueño del hotel o superadmin
+    if request.user.rol != 'administrador' or (hotel.admin != request.user and not request.user.is_superuser):
+        messages.error(request, 'No tienes permisos para editar esta habitación.')
+        return redirect('detalle_hotel', hotel_id=hotel.id)
+    
+    if request.method == 'POST':
+        form = HabitacionForm(request.POST, instance=habitacion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Habitación #{habitacion.numero} actualizada exitosamente.')
+            return redirect('detalle_hotel', hotel_id=hotel.id)
+    else:
+        form = HabitacionForm(instance=habitacion)
+    
+    return render(request, 'hotel/editar_habitacion.html', {'form': form, 'habitacion': habitacion, 'hotel': hotel})
+
+@login_required
+def eliminar_habitacion(request, habitacion_id):
+    habitacion = get_object_or_404(Habitacion, id=habitacion_id)
+    hotel = habitacion.hotel
+    
+    # Verificar que el usuario sea admin y sea el dueño del hotel o superadmin
+    if request.user.rol != 'administrador' or (hotel.admin != request.user and not request.user.is_superuser):
+        messages.error(request, 'No tienes permisos para eliminar esta habitación.')
+        return redirect('detalle_hotel', hotel_id=hotel.id)
+    
+    if request.method == 'POST':
+        numero = habitacion.numero
+        habitacion.delete()
+        messages.success(request, f'Habitación #{numero} eliminada exitosamente.')
+        return redirect('detalle_hotel', hotel_id=hotel.id)
+    
+    return render(request, 'hotel/eliminar_habitacion.html', {'habitacion': habitacion, 'hotel': hotel})
 
 @login_required
 def confirmar_reserva(request, habitacion_id):
@@ -44,7 +102,6 @@ def confirmar_reserva(request, habitacion_id):
             try:
                 reserva.Cliente = request.user.cliente
             except:
-                # Si no tiene cliente, redirigir o manejar error (aquí asumimos que tiene)
                 messages.error(request, 'Debes tener un perfil de cliente para hacer reservas.')
                 return redirect('home')
             
@@ -61,19 +118,12 @@ def confirmar_reserva(request, habitacion_id):
             # Crear relación Reserva_Habitacion
             Reserva_Habitacion.objects.create(reserva=reserva, habitacion=habitacion)
             
-            # Marcar habitación como reservada (opcional, depende de la lógica de negocio)
-            # habitacion.estado = 'R'
-            # habitacion.save()
-            
             # Enviar correo de confirmación
             try:
                 from django.core.mail import send_mail
                 from django.conf import settings
                 
-                # Obtener la hora actual
                 hora_reserva = timezone.now().strftime('%H:%M')
-                
-                # Construir el mensaje del correo
                 asunto = f'Confirmación de Reserva - {habitacion.hotel.nombre}'
                 mensaje = f"""
 Hola {request.user.username},
@@ -114,11 +164,10 @@ Este es un correo automático, por favor no responder.
                     mensaje,
                     settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@talkmania.com',
                     [request.user.email],
-                    fail_silently=True,  # No fallar si el email no se puede enviar
+                    fail_silently=True,
                 )
                 messages.success(request, f'¡Reserva confirmada exitosamente! Se ha enviado un correo de confirmación a {request.user.email}')
             except Exception as e:
-                # Si falla el envío del correo, aún así mostrar mensaje de éxito de la reserva
                 messages.success(request, '¡Reserva confirmada exitosamente!')
                 messages.warning(request, f'No se pudo enviar el correo de confirmación: {str(e)}')
             
@@ -139,7 +188,7 @@ def crear_hotel(request):
         form = HotelForm(request.POST)
         if form.is_valid():
             hotel = form.save(commit=False)
-            hotel.admin = request.user  # Asignar el usuario actual como admin del hotel
+            hotel.admin = request.user
             hotel.save()
             messages.success(request, f'Hotel "{hotel.nombre}" creado exitosamente.')
             return redirect('vista_hotel')
@@ -152,7 +201,6 @@ def crear_hotel(request):
 def editar_hotel(request, hotel_id):
     hotel = get_object_or_404(Hotel, id=hotel_id)
     
-    # Verificar que el usuario sea admin y sea el dueño del hotel o superadmin
     if request.user.rol != 'administrador' or (hotel.admin != request.user and not request.user.is_superuser):
         messages.error(request, 'No tienes permisos para editar este hotel.')
         return redirect('vista_hotel')
@@ -172,7 +220,6 @@ def editar_hotel(request, hotel_id):
 def eliminar_hotel(request, hotel_id):
     hotel = get_object_or_404(Hotel, id=hotel_id)
     
-    # Verificar que el usuario sea admin y sea el dueño del hotel o superadmin
     if request.user.rol != 'administrador' or (hotel.admin != request.user and not request.user.is_superuser):
         messages.error(request, 'No tienes permisos para eliminar este hotel.')
         return redirect('vista_hotel')
