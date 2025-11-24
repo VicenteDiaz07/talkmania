@@ -13,4 +13,14 @@ class HabitacionForm(forms.ModelForm):
             'estado': forms.Select(attrs={'class': 'form-select'}),
         }
 
+class ReservaForm(forms.ModelForm):
+    class Meta:
+        model = Reserva
+        fields = ['fecha_entrada', 'fecha_salida', 'tipo_pago']
+        widgets = {
+            'fecha_entrada': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_salida': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tipo_pago': forms.Select(attrs={'class': 'form-select'}),
+        }
+
 

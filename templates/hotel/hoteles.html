@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Hoteles - Talkmania{% endblock %}
+
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'CSS/hoteles.css' %}">
@@ -11,24 +11,8 @@
 {% block content %}
 <div class="container my-4">
     
-    <!-- Search Section -->
-    <div class="search-container">
-        <div class="search-input-group">
-            <i class="fas fa-plane-departure"></i>
-            <input type="text" placeholder="Lugar de destino">
-        </div>
-        <div class="search-input-group">
-            <label>Fecha ingreso</label>
-            <input type="date">
-        </div>
-        <div class="search-input-group">
-            <label>Fecha Salida</label>
-            <input type="date">
-        </div>
-        <button class="btn-search">Buscar</button>
-    </div>
 
-    <!-- Filters Section -->
+    <!-- filtros-->
     <div class="filters-container">
         <div class="filter-dropdown">
             Precio <i class="fas fa-chevron-down"></i>
@@ -38,7 +22,7 @@
         </div>
     </div>
 
-    <!-- Hotel List -->
+    <!-- lista de hoteles -->
     <div class="hotel-list">
         {% for hotel in hoteles %}
         <div class="card hotel-card">
@@ -63,21 +47,17 @@
                         <div class="tag-cancellation">Cancelación gratis</div>
                         
                         <ul class="hotel-features">
-                            <li><i class="fas fa-check"></i> Desayuno continental</li>
-                            <li><i class="fas fa-check"></i> Puedes cancelar gratis hasta el 06/10/2024</li>
-                            <li class="negative"><i class="fas fa-times"></i> No incluye régimen de comida</li>
+                            <li><i class="fas fa-check"></i> Desayuno integrado</li>
+                            <li><i class="fas fa-check"></i> Puedes cancelar gratis </li>
                         </ul>
                     </div>
                     <div class="col-md-4 hotel-price-section">
-                        <i class="fas fa-info-circle text-info mb-2" title="Información de precio"></i>
-                        <div class="price-label">Precio por noche</div>
-                        <div class="price-value">CLP 105.000</div> <!-- Placeholder price, should come from DB/Logic -->
+                        <div class="price-label">🤑 Precios desde</div>
+                        <div class="price-value">CLP 20000</div> <!-- precio -->
                         
                         <a href="{% url 'detalle_hotel' hotel.id %}" class="btn-availability">Ver disponibilidad</a>
                         
-                        <div class="rooms-left">
-                            <i class="far fa-clock"></i> Solo quedan 5
-                        </div>
+                        
                     </div>
                 </div>
             </div>
