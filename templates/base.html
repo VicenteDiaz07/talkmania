@@ -28,6 +28,9 @@
                             </li>
                             {% if user.rol == 'administrador' %}
                                 <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'crear_hotel' %}">🏨 Crear Hotel</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link" href="{% url 'administrar_usuarios' %}">Admin Usuarios</a>
                                 </li>
                                 <li class="nav-item">

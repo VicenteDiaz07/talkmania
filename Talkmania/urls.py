@@ -26,10 +26,9 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')),
     path('', vista_hotel, name='vista_hotel'),
     path('hoteles/<int:hotel_id>/', vista_detalle_hotel, name='detalle_hotel'),
+    path('hoteles/crear/', crear_hotel, name='crear_hotel'),
+    path('hoteles/editar/<int:hotel_id>/', editar_hotel, name='editar_hotel'),
+    path('hoteles/eliminar/<int:hotel_id>/', eliminar_hotel, name='eliminar_hotel'),
     path('hoteles/agregar-habitacion/', agregar_habitacion, name='agregar_habitacion'),
     path('hoteles/reservar/<int:habitacion_id>/', confirmar_reserva, name='confirmar_reserva'),
-
-
-
-    
 ]

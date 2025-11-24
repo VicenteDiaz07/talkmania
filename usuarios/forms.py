@@ -4,15 +4,38 @@ from django.contrib.auth import authenticate
 from .models import User, Review
 
 class RegistroForm(UserCreationForm):
+    nombre_completo = forms.CharField(
+        max_length=150, 
+        required=True, 
+        widget=forms.TextInput(attrs={'placeholder': 'Nombre completo (ej: Juan Pérez)'}),
+        label='Nombre completo'
+    )
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'placeholder': 'Email'}))
     telefono = forms.CharField(max_length=15, required=False, widget=forms.TextInput(attrs={'placeholder': 'Teléfono (opcional)'}))
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'telefono', 'password1', 'password2']
+        fields = ['username', 'nombre_completo', 'email', 'telefono', 'password1', 'password2']
         widgets = {
-            'username': forms.TextInput(attrs={'placeholder': 'Usuario'}),
+            'username': forms.TextInput(attrs={'placeholder': 'Usuario (sin espacios)'}),
         }
+        help_texts = {
+            'username': 'Nombre de usuario para iniciar sesión (sin espacios, ej: juan_perez)',
+        }
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        
+        # Dividir el nombre completo en first_name y last_name
+        nombre_completo = self.cleaned_data.get('nombre_completo', '')
+        partes = nombre_completo.strip().split(' ', 1)  # Dividir en máximo 2 partes
+        
+        user.first_name = partes[0] if len(partes) > 0 else ''
+        user.last_name = partes[1] if len(partes) > 1 else ''
+        
+        if commit:
+            user.save()
+        return user
 
 class LoginForm(forms.Form):
     username = forms.CharField(

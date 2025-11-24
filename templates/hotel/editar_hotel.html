@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Hotel{% endblock %}
+
+{% block header %}Editar Hotel: {{ hotel.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0">✏️ Editar Hotel</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger">{{ form.nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}</label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <div class="text-danger">{{ form.telefono.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.estrellas.id_for_label }}" class="form-label">{{ form.estrellas.label }}</label>
+                        {{ form.estrellas }}
+                        {% if form.estrellas.errors %}
+                            <div class="text-danger">{{ form.estrellas.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
+                    {{ form.direccion }}
+                    {% if form.direccion.errors %}
+                        <div class="text-danger">{{ form.direccion.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3 form-check">
+                    {{ form.estado }}
+                    <label class="form-check-label" for="{{ form.estado.id_for_label }}">
+                        {{ form.estado.label }}
+                    </label>
+                    {% if form.estado.errors %}
+                        <div class="text-danger">{{ form.estado.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning">💾 Guardar Cambios</button>
+                    <a href="{% url 'detalle_hotel' hotel.id %}" class="btn btn-secondary">❌ Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -31,7 +31,16 @@ class User(AbstractUser):
     )
     
     def __str__(self):
+        # Mostrar nombre completo si existe, sino el username
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
         return self.username
+    
+    def get_nombre_completo(self):
+        """Retorna el nombre completo del usuario"""
+        return f"{self.first_name} {self.last_name}".strip() or self.username
 
 
 class Review(models.Model):

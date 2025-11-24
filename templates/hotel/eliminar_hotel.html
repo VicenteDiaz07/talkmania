@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Hotel{% endblock %}
+
+{% block header %}Eliminar Hotel{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0">⚠️ Confirmar Eliminación</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5>¿Estás seguro de que deseas eliminar este hotel?</h5>
+                <p class="mb-0">Esta acción no se puede deshacer.</p>
+            </div>
+            
+            <div class="mb-4">
+                <h4>{{ hotel.nombre }}</h4>
+                <p><strong>Dirección:</strong> {{ hotel.direccion }}</p>
+                <p><strong>Email:</strong> {{ hotel.email }}</p>
+                <p><strong>Teléfono:</strong> {{ hotel.telefono }}</p>
+                <p><strong>Estrellas:</strong> {{ hotel.estrellas }}⭐</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger">🗑️ Sí, Eliminar Hotel</button>
+                    <a href="{% url 'detalle_hotel' hotel.id %}" class="btn btn-secondary">❌ Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

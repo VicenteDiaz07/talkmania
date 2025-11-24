@@ -36,6 +36,7 @@
             <a href="{% url 'historial_reservas' %}" class="btn">📋 Mis Reservas</a>
             
             {% if user.rol == 'administrador' %}
+                <a href="{% url 'crear_hotel' %}" class="btn">🏨 Crear Hotel</a>
                 <a href="{% url 'administrar_usuarios' %}" class="btn">👥 Administrar Usuarios</a>
                 <a href="{% url 'verificar_qr' %}" class="btn">📱 Verificar QR</a>
             {% endif %}

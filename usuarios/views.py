@@ -47,21 +47,22 @@ def registro(request):
         if form.is_valid():
             user = form.save()
             
-            # Crear automáticamente un Cliente asociado al User
-            try:
-                Cliente.objects.create(
-                    user=user,
-                    nombre=user.username,
-                    email=user.email,
-                    telefono=user.telefono if user.telefono else '000000000',
-                    fecha_nacimiento=timezone.now().date(),
-                    fecha_registro=timezone.now().date()
-                )
-            except Exception as e:
-                # Si falla la creación del cliente, eliminar el usuario
-                user.delete()
-                messages.error(request, f'Error al crear el perfil de cliente: {str(e)}')
-                return render(request, 'usuarios/registro.html', {'form': form})
+            # Crear automáticamente un Cliente asociado al User SOLO si el rol es 'cliente'
+            if user.rol == 'cliente':
+                try:
+                    Cliente.objects.create(
+                        user=user,
+                        nombre=user.username,
+                        email=user.email,
+                        telefono=user.telefono if user.telefono else '000000000',
+                        fecha_nacimiento=timezone.now().date(),
+                        fecha_registro=timezone.now().date()
+                    )
+                except Exception as e:
+                    # Si falla la creación del cliente, eliminar el usuario
+                    user.delete()
+                    messages.error(request, f'Error al crear el perfil de cliente: {str(e)}')
+                    return render(request, 'usuarios/registro.html', {'form': form})
             
             login(request, user)
             messages.success(request, '¡Registro exitoso! Bienvenido a Talkmania.')
@@ -104,7 +105,7 @@ def recuperar_password(request):
             # Enviar email (asegúrate de tener configurado SMTP en settings.py)
             send_mail(
                 'Recuperación de contraseña - Talkmania',
-                f'Hola {user.username},\n\nUsa este enlace para resetear tu contraseña:\n{reset_url}\n\nSi no solicitaste esto, ignora este email.',
+                f'Hola {user.username},\\n\\nUsa este enlace para resetear tu contraseña:\\n{reset_url}\\n\\nSi no solicitaste esto, ignora este email.',
                 'noreply@talkmania.com',
                 [email],
                 fail_silently=False,
