@@ -7,6 +7,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('recuperar-password/', views.recuperar_password, name='recuperar_password'),
+    path('reset/<uidb64>/<token>/', views.reset_password, name='reset_password'),
     path('historial/', views.historial_reservas, name='historial_reservas'),
     path('review/<int:reserva_id>/', views.crear_review, name='crear_review'),
     path('admin/usuarios/', views.administrar_usuarios, name='administrar_usuarios'),

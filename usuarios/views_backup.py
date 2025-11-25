@@ -14,13 +14,16 @@ import qrcode
 from io import BytesIO
 import base64
 
-# Página de inicio - Redirige directamente a hoteles
+# Página de inicio (landing)
 def index(request):
-    return redirect('vista_hotel')
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'index.html')
 
 # Dashboard (después del login)
 @login_required
 def home(request):
+    # Obtener estadísticas del usuario
     context = {
         'total_reservas': 0,
         'total_reviews': request.user.reviews.count(),
@@ -44,6 +47,7 @@ def registro(request):
         if form.is_valid():
             user = form.save()
             
+            # Crear automáticamente un Cliente asociado al User SOLO si el rol es 'cliente'
             if user.rol == 'cliente':
                 try:
                     Cliente.objects.create(
@@ -55,6 +59,7 @@ def registro(request):
                         fecha_registro=timezone.now().date()
                     )
                 except Exception as e:
+                    # Si falla la creación del cliente, eliminar el usuario
                     user.delete()
                     messages.error(request, f'Error al crear el perfil de cliente: {str(e)}')
                     return render(request, 'usuarios/registro.html', {'form': form})
@@ -73,111 +78,6 @@ def login_view(request):
     
     if request.method == 'POST':
         form = LoginForm(request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, f'¡Bienvenido de nuevo, {user.username}!')
-            return redirect('home')
-    else:
-        form = LoginForm()
-    return render(request, 'usuarios/login.html', {'form': form})
-
-def logout_view(request):
-    logout(request)
-    messages.success(request, 'Has cerrado sesión correctamente.')
-    return redirect('vista_hotel')
-
-# HU 2: Recuperación de contraseña
-def recuperar_password(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        try:
-            user = User.objects.get(email=email)
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = f"{request.scheme}://{request.get_host()}/usuarios/reset/{uid}/{token}/"
-            
-            send_mail(
-                'Recuperación de contraseña - Talkmania',
-                f'Hola {user.username},\n\nUsa este enlace para resetear tu contraseña:\n{reset_url}\n\nSi no solicitaste esto, ignora este email.',
-                'noreply@talkmania.com',
-                [email],
-                fail_silently=False,
-            )
-            messages.success(request, 'Se ha enviado un email con instrucciones. Revisa tu bandeja de entrada.')
-        except User.DoesNotExist:
-            messages.error(request, 'No existe una cuenta con ese email.')
-        except Exception as e:
-            messages.error(request, f'Error al enviar el email: {str(e)}')
-    
-    return render(request, 'usuarios/recuperar_password.html')
-
-def reset_password(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-    
-    if user is not None and default_token_generator.check_token(user, token):
-        if request.method == 'POST':
-            password1 = request.POST.get('new_password1')
-            password2 = request.POST.get('new_password2')
-            
-            if password1 and password2:
-                if password1 == password2:
-                    user.set_password(password1)
-                    user.save()
-                    messages.success(request, '¡Contraseña restablecida exitosamente! Ahora puedes iniciar sesión.')
-                    return redirect('login')
-                else:
-                    messages.error(request, 'Las contraseñas no coinciden.')
-            else:
-                messages.error(request, 'Por favor completa ambos campos.')
-        
-        return render(request, 'usuarios/reset_password.html', {'validlink': True})
-    else:
-        messages.error(request, 'El enlace de recuperación es inválido o ha expirado.')
-        return redirect('recuperar_password')
-
-# HU 12: Sistema de reseñas
-@login_required
-def crear_review(request, reserva_id):
-    reserva = get_object_or_404(Reserva, id=reserva_id)
-    
-    try:
-        if reserva.Cliente.user != request.user:
-            messages.error(request, 'Esta reserva no te pertenece.')
-            return redirect('historial_reservas')
-    except AttributeError:
-        messages.error(request, 'No tienes permisos para dejar una reseña en esta reserva.')
-        return redirect('historial_reservas')
-    
-    if not reserva.estado:
-        messages.warning(request, 'Solo puedes dejar reseñas en reservas completadas.')
-        return redirect('historial_reservas')
-    
-    if Review.objects.filter(usuario=request.user, reserva=reserva).exists():
-        messages.warning(request, 'Ya has dejado una reseña para esta reserva.')
-        return redirect('historial_reservas')
-    
-    if request.method == 'POST':
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.usuario = request.user
-            review.reserva = reserva
-            review.save()
-            messages.success(request, '¡Reseña publicada exitosamente!')
-            return redirect('historial_reservas')
-    else:
-        form = ReviewForm()
-    
-    return render(request, 'usuarios/crear_review.html', {'form': form, 'reserva': reserva})
-
-# HU 13: Historial de reservas
-@login_required
-def historial_reservas(request):
     reservas = []
     sin_perfil = False
     reservas_completadas = 0
@@ -186,8 +86,11 @@ def historial_reservas(request):
     try:
         cliente = request.user.cliente
         reservas = Reserva.objects.filter(Cliente=cliente).order_by('-fecha_reserva')
+        
+        # Calcular estadísticas
         reservas_completadas = reservas.filter(estado=True).count()
         reservas_pendientes = reservas.filter(estado=False).count()
+        
     except AttributeError:
         sin_perfil = True
     
@@ -235,6 +138,7 @@ def administrar_usuarios(request):
 def generar_qr_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id)
     
+    # Verificar que la reserva pertenezca al usuario (opcional)
     try:
         if reserva.Cliente.user != request.user and request.user.rol not in ['administrador', 'staff']:
             messages.error(request, 'No tienes permisos para ver este QR.')
@@ -242,6 +146,7 @@ def generar_qr_reserva(request, reserva_id):
     except AttributeError:
         pass
     
+    # Generar QR con información de la reserva
     qr_data = f"RESERVA-{reserva.id}-{reserva.Cliente.id}"
     qr = qrcode.make(qr_data)
     buffer = BytesIO()
@@ -266,6 +171,7 @@ def verificar_qr(request):
     if request.method == 'POST':
         codigo = request.POST.get('codigo')
         try:
+            # Formato esperado: "RESERVA-123-456"
             parts = codigo.split('-')
             if len(parts) != 3 or parts[0] != 'RESERVA':
                 raise ValueError('Formato inválido')
@@ -276,6 +182,7 @@ def verificar_qr(request):
             if reserva.estado:
                 messages.warning(request, f'⚠️ La reserva #{reserva_id} ya estaba verificada anteriormente.')
             else:
+                # Marcar como completada (estado = True)
                 reserva.estado = True
                 reserva.save()
                 messages.success(request, f'✅ Reserva #{reserva_id} verificada y marcada como completada.')

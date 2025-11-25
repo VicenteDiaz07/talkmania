@@ -1,16 +1,258 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Registro{% endblock %}
+{% block title %}Registro - Talkmania{% endblock %}
 
-{% block header %}Crear Cuenta{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    body {
+        background: #F8F9FA;
+    }
+    
+    .registro-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    
+    .registro-modal {
+        background: #6B5B95;
+        border-radius: 30px;
+        padding: 50px 40px;
+        max-width: 550px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .registro-header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+    
+    .registro-title {
+        color: white;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .registro-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 16px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        color: white;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .form-control:focus {
+        outline: none;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(126, 217, 87, 0.3);
+    }
+    
+    .btn-registro {
+        width: 100%;
+        padding: 15px;
+        background: #7ED957;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s;
+    }
+    
+    .btn-registro:hover {
+        background: #6BC847;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(126, 217, 87, 0.4);
+    }
+    
+    .registro-footer {
+        text-align: center;
+        margin-top: 25px;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .registro-footer a {
+        color: #7ED957;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .registro-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .errorlist {
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        list-style: none;
+        margin-bottom: 15px;
+    }
+    
+    .helptext {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 5px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block header %}{% endblock %}
 
 {% block content %}
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Registrarse</button>
-</form>
-<p style="margin-top: 20px;">
-    ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión aquí</a>
-</p>
+<div class="registro-container">
+    <div class="registro-modal">
+        <div class="registro-header">
+            <h1 class="registro-title">✈️ Únete a Talkmania</h1>
+            <p class="registro-subtitle">Crea tu cuenta y comienza a reservar</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <ul class="errorlist">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="id_username">Usuario</label>
+                <input type="text" 
+                       name="username" 
+                       id="id_username" 
+                       class="form-control" 
+                       placeholder="Ej: juan_perez"
+                       required>
+                {% if form.username.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <span class="helptext">Nombre de usuario para iniciar sesión (sin espacios)</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_nombre_completo">Nombre Completo</label>
+                <input type="text" 
+                       name="nombre_completo" 
+                       id="id_nombre_completo" 
+                       class="form-control" 
+                       placeholder="Ej: Juan Pérez"
+                       required>
+                {% if form.nombre_completo.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.nombre_completo.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                <input type="email" 
+                       name="email" 
+                       id="id_email" 
+                       class="form-control" 
+                       placeholder="tu@email.com"
+                       required>
+                {% if form.email.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.email.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_telefono">Teléfono (opcional)</label>
+                <input type="text" 
+                       name="telefono" 
+                       id="id_telefono" 
+                       class="form-control" 
+                       placeholder="912345678">
+                {% if form.telefono.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.telefono.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password1">Contraseña</label>
+                <input type="password" 
+                       name="password1" 
+                       id="id_password1" 
+                       class="form-control" 
+                       placeholder="Ingresa tu contraseña"
+                       required>
+                {% if form.password1.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password1.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password2">Confirmar Contraseña</label>
+                <input type="password" 
+                       name="password2" 
+                       id="id_password2" 
+                       class="form-control" 
+                       placeholder="Confirma tu contraseña"
+                       required>
+                {% if form.password2.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password2.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn-registro">Crear Cuenta</button>
+        </form>
+        
+        <div class="registro-footer">
+            <p>¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -105,6 +105,7 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         transition: all 0.3s;
         border: 2px solid transparent;
+        position: relative;
     }
     
     .hotel-card:hover {
@@ -254,6 +255,49 @@
         font-weight: 600;
         margin-left: 10px;
     }
+    
+    .hotel-admin-actions {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-hotel-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .btn-hotel-edit {
+        background: #6B5B95;
+        color: white;
+    }
+    
+    .btn-hotel-edit:hover {
+        background: #5A4A7F;
+        transform: scale(1.1);
+        color: white;
+    }
+    
+    .btn-hotel-delete {
+        background: #DC3545;
+        color: white;
+    }
+    
+    .btn-hotel-delete:hover {
+        background: #C82333;
+        transform: scale(1.1);
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -299,6 +343,20 @@
     <div class="hotel-grid">
         {% for hotel in hoteles %}
         <div class="hotel-card">
+            <!-- Botones de admin (solo para dueños del hotel) -->
+            {% if user.is_authenticated and user.rol == 'administrador' %}
+                {% if hotel.admin == user or user.is_superuser %}
+                <div class="hotel-admin-actions">
+                    <a href="{% url 'editar_hotel' hotel.id %}" class="btn-hotel-action btn-hotel-edit" title="Editar hotel">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'eliminar_hotel' hotel.id %}" class="btn-hotel-action btn-hotel-delete" title="Eliminar hotel">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+                {% endif %}
+            {% endif %}
+            
             <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
                  alt="{{ hotel.nombre }}" 
                  class="hotel-image">
