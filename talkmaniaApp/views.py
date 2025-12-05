@@ -39,7 +39,7 @@ def vista_detalle_hotel(request, hotel_id):
                     Hotel=hotel,
                     fecha_entrada__lt=fecha_salida,
                     fecha_salida__gt=fecha_entrada
-                ).values_list('reserva_habitacion__habitacion__id', flat=True)
+                ).values_list('habitaciones__habitacion__id', flat=True)
                 
                 # Filtrar habitaciones disponibles (excluir las ocupadas)
                 habitaciones = Habitacion.objects.filter(
@@ -154,8 +154,9 @@ def verificar_disponibilidad(habitacion, fecha_entrada, fecha_salida, reserva_id
         tuple: (disponible: bool, reservas_conflictivas: QuerySet)
     """
     # Buscar reservas que se solapen con las fechas solicitadas
+    # Usamos 'habitaciones__habitacion' porque la relación es a través de Reserva_Habitacion
     reservas_conflictivas = Reserva.objects.filter(
-        reserva_habitacion__habitacion=habitacion,
+        habitaciones__habitacion=habitacion,
         # Condición de solapamiento: 
         # La reserva existente empieza antes de que termine la nueva
         # Y la reserva existente termina después de que empiece la nueva
