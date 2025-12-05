@@ -283,6 +283,40 @@ Este es un correo automático, por favor no responder.
     
     return render(request, 'hotel/confirmar_reserva.html', {'form': form, 'habitacion': habitacion})
 
+
+# API endpoint para obtener fechas ocupadas de una habitación
+from django.http import JsonResponse
+
+def obtener_fechas_ocupadas(request, habitacion_id):
+    """
+    Retorna un JSON con todas las fechas ocupadas para una habitación específica.
+    Formato: {"occupied_dates": ["2024-12-10", "2024-12-11", ...]}
+    """
+    try:
+        habitacion = Habitacion.objects.get(id=habitacion_id)
+        
+        # Obtener todas las reservas de esta habitación
+        reservas = Reserva.objects.filter(
+            habitaciones__habitacion=habitacion
+        ).values('fecha_entrada', 'fecha_salida')
+        
+        # Generar lista de todas las fechas ocupadas
+        from datetime import timedelta
+        fechas_ocupadas = []
+        
+        for reserva in reservas:
+            fecha_actual = reserva['fecha_entrada']
+            while fecha_actual < reserva['fecha_salida']:
+                fechas_ocupadas.append(fecha_actual.strftime('%Y-%m-%d'))
+                fecha_actual += timedelta(days=1)
+        
+        return JsonResponse({
+            'occupied_dates': list(set(fechas_ocupadas)),  # Eliminar duplicados
+            'habitacion_id': habitacion_id
+        })
+    except Habitacion.DoesNotExist:
+        return JsonResponse({'error': 'Habitación no encontrada'}, status=404)
+
 # Gestión de Hoteles (solo administradores)
 @login_required
 def crear_hotel(request):

@@ -19,17 +19,19 @@
                         <p><strong>Precio por noche:</strong> CLP {{ habitacion.precio }}</p>
                     </div>
 
-                    <form method="post">
+                    <form method="post" id="reservaForm">
                         {% csrf_token %}
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.fecha_entrada.id_for_label }}" class="form-label">Fecha de Entrada</label>
                                 {{ form.fecha_entrada }}
+                                <small class="text-muted">Las fechas ocupadas están deshabilitadas</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.fecha_salida.id_for_label }}" class="form-label">Fecha de Salida</label>
                                 {{ form.fecha_salida }}
+                                <small class="text-muted">Las fechas ocupadas están deshabilitadas</small>
                             </div>
                         </div>
 
@@ -48,4 +50,82 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const habitacionId = {{ habitacion.id }};
+    const fechaEntradaInput = document.getElementById('{{ form.fecha_entrada.id_for_label }}');
+    const fechaSalidaInput = document.getElementById('{{ form.fecha_salida.id_for_label }}');
+    
+    // Obtener fechas ocupadas del servidor
+    fetch(`/api/habitaciones/${habitacionId}/fechas-ocupadas/`)
+        .then(response => response.json())
+        .then(data => {
+            const fechasOcupadas = data.occupied_dates;
+            
+            // Función para verificar si una fecha está ocupada
+            function estaOcupada(fecha) {
+                return fechasOcupadas.includes(fecha);
+            }
+            
+            // Función para deshabilitar fechas ocupadas
+            function deshabilitarFechasOcupadas(input) {
+                input.addEventListener('input', function() {
+                    const fechaSeleccionada = this.value;
+                    if (estaOcupada(fechaSeleccionada)) {
+                        alert('⚠️ Esta fecha no está disponible. Por favor, selecciona otra fecha.');
+                        this.value = '';
+                    }
+                });
+            }
+            
+            // Aplicar a ambos inputs
+            deshabilitarFechasOcupadas(fechaEntradaInput);
+            deshabilitarFechasOcupadas(fechaSalidaInput);
+            
+            // Validar rango de fechas
+            fechaSalidaInput.addEventListener('input', function() {
+                const fechaEntrada = new Date(fechaEntradaInput.value);
+                const fechaSalida = new Date(this.value);
+                
+                if (fechaSalida <= fechaEntrada) {
+                    alert('⚠️ La fecha de salida debe ser posterior a la fecha de entrada.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Verificar si hay fechas ocupadas en el rango
+                const rangoOcupado = verificarRangoOcupado(fechaEntradaInput.value, this.value, fechasOcupadas);
+                if (rangoOcupado) {
+                    alert('⚠️ Hay fechas ocupadas en el rango seleccionado. Por favor, elige otras fechas.');
+                    this.value = '';
+                }
+            });
+            
+            // Establecer fecha mínima como hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            fechaEntradaInput.setAttribute('min', hoy);
+            fechaSalidaInput.setAttribute('min', hoy);
+        })
+        .catch(error => {
+            console.error('Error al obtener fechas ocupadas:', error);
+        });
+});
+
+// Función para verificar si hay fechas ocupadas en un rango
+function verificarRangoOcupado(fechaInicio, fechaFin, fechasOcupadas) {
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    const fechaActual = new Date(inicio);
+    
+    while (fechaActual < fin) {
+        const fechaStr = fechaActual.toISOString().split('T')[0];
+        if (fechasOcupadas.includes(fechaStr)) {
+            return true;
+        }
+        fechaActual.setDate(fechaActual.getDate() + 1);
+    }
+    return false;
+}
+</script>
 {% endblock %}

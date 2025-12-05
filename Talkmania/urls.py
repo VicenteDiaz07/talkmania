@@ -33,4 +33,6 @@ urlpatterns = [
     path('habitaciones/editar/<int:habitacion_id>/', editar_habitacion, name='editar_habitacion'),
     path('habitaciones/eliminar/<int:habitacion_id>/', eliminar_habitacion, name='eliminar_habitacion'),
     path('hoteles/reservar/<int:habitacion_id>/', confirmar_reserva, name='confirmar_reserva'),
+    # API endpoint para fechas ocupadas
+    path('api/habitaciones/<int:habitacion_id>/fechas-ocupadas/', obtener_fechas_ocupadas, name='api_fechas_ocupadas'),
 ]
