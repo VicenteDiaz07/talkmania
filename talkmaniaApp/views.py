@@ -12,7 +12,54 @@ def vista_hotel(request):
 
 def vista_detalle_hotel(request, hotel_id):
     hotel = Hotel.objects.get(id=hotel_id)
-    habitaciones = Habitacion.objects.filter(hotel=hotel, estado='D')[:6]
+    
+    # Obtener fechas del formulario de búsqueda
+    fecha_entrada_str = request.GET.get('fecha_entrada')
+    fecha_salida_str = request.GET.get('fecha_salida')
+    
+    # Inicializar variables
+    fecha_entrada = None
+    fecha_salida = None
+    habitaciones_filtradas = False
+    
+    # Si se proporcionaron fechas, filtrar habitaciones disponibles
+    if fecha_entrada_str and fecha_salida_str:
+        try:
+            from datetime import datetime
+            fecha_entrada = datetime.strptime(fecha_entrada_str, '%Y-%m-%d').date()
+            fecha_salida = datetime.strptime(fecha_salida_str, '%Y-%m-%d').date()
+            
+            # Validar que las fechas sean lógicas
+            if fecha_salida <= fecha_entrada:
+                messages.warning(request, 'La fecha de salida debe ser posterior a la fecha de entrada.')
+                habitaciones = Habitacion.objects.filter(hotel=hotel, estado='D')[:6]
+            else:
+                # Obtener IDs de habitaciones ocupadas en el rango de fechas
+                habitaciones_ocupadas_ids = Reserva.objects.filter(
+                    Hotel=hotel,
+                    fecha_entrada__lt=fecha_salida,
+                    fecha_salida__gt=fecha_entrada
+                ).values_list('reserva_habitacion__habitacion__id', flat=True)
+                
+                # Filtrar habitaciones disponibles (excluir las ocupadas)
+                habitaciones = Habitacion.objects.filter(
+                    hotel=hotel, 
+                    estado='D'
+                ).exclude(id__in=habitaciones_ocupadas_ids)[:6]
+                
+                habitaciones_filtradas = True
+                
+                if not habitaciones.exists():
+                    messages.info(request, f'No hay habitaciones disponibles del {fecha_entrada.strftime("%d/%m/%Y")} al {fecha_salida.strftime("%d/%m/%Y")}. Intenta con otras fechas.')
+                else:
+                    messages.success(request, f'Mostrando {habitaciones.count()} habitación(es) disponible(s) para tus fechas.')
+                    
+        except ValueError:
+            messages.error(request, 'Formato de fecha inválido. Por favor, selecciona las fechas correctamente.')
+            habitaciones = Habitacion.objects.filter(hotel=hotel, estado='D')[:6]
+    else:
+        # Si no hay fechas, mostrar todas las habitaciones disponibles
+        habitaciones = Habitacion.objects.filter(hotel=hotel, estado='D')[:6]
     
     # Verificar si el usuario es admin del hotel
     is_hotel_admin = False
@@ -23,7 +70,10 @@ def vista_detalle_hotel(request, hotel_id):
     return render(request, 'hotel/detalle_hotel.html', {
         'hotel': hotel,
         'habitaciones': habitaciones,
-        'is_hotel_admin': is_hotel_admin
+        'is_hotel_admin': is_hotel_admin,
+        'fecha_entrada': fecha_entrada,
+        'fecha_salida': fecha_salida,
+        'habitaciones_filtradas': habitaciones_filtradas,
     })
 
 # CRUD de Habitaciones
@@ -89,6 +139,38 @@ def eliminar_habitacion(request, habitacion_id):
     
     return render(request, 'hotel/eliminar_habitacion.html', {'habitacion': habitacion, 'hotel': hotel})
 
+# Función auxiliar para verificar disponibilidad
+def verificar_disponibilidad(habitacion, fecha_entrada, fecha_salida, reserva_id=None):
+    """
+    Verifica si una habitación está disponible en el rango de fechas especificado.
+    
+    Args:
+        habitacion: Objeto Habitacion a verificar
+        fecha_entrada: Fecha de check-in
+        fecha_salida: Fecha de check-out
+        reserva_id: ID de reserva a excluir (para ediciones)
+    
+    Returns:
+        tuple: (disponible: bool, reservas_conflictivas: QuerySet)
+    """
+    # Buscar reservas que se solapen con las fechas solicitadas
+    reservas_conflictivas = Reserva.objects.filter(
+        reserva_habitacion__habitacion=habitacion,
+        # Condición de solapamiento: 
+        # La reserva existente empieza antes de que termine la nueva
+        # Y la reserva existente termina después de que empiece la nueva
+        fecha_entrada__lt=fecha_salida,
+        fecha_salida__gt=fecha_entrada
+    )
+    
+    # Excluir la reserva actual si estamos editando
+    if reserva_id:
+        reservas_conflictivas = reservas_conflictivas.exclude(id=reserva_id)
+    
+    disponible = not reservas_conflictivas.exists()
+    return disponible, reservas_conflictivas
+
+
 @login_required
 def confirmar_reserva(request, habitacion_id):
     habitacion = Habitacion.objects.get(id=habitacion_id)
@@ -104,6 +186,29 @@ def confirmar_reserva(request, habitacion_id):
             except:
                 messages.error(request, 'Debes tener un perfil de cliente para hacer reservas.')
                 return redirect('home')
+            
+            # VALIDAR DISPONIBILIDAD ANTES DE GUARDAR
+            disponible, reservas_conflictivas = verificar_disponibilidad(
+                habitacion, 
+                reserva.fecha_entrada, 
+                reserva.fecha_salida
+            )
+            
+            if not disponible:
+                # Mostrar mensaje de error con las fechas conflictivas
+                conflicto = reservas_conflictivas.first()
+                messages.error(
+                    request, 
+                    f'❌ Lo sentimos, la habitación #{habitacion.numero} no está disponible en las fechas seleccionadas. '
+                    f'Ya existe una reserva del {conflicto.fecha_entrada.strftime("%d/%m/%Y")} '
+                    f'al {conflicto.fecha_salida.strftime("%d/%m/%Y")}. '
+                    f'Por favor, selecciona otras fechas.'
+                )
+                return render(request, 'hotel/confirmar_reserva.html', {
+                    'form': form, 
+                    'habitacion': habitacion,
+                    'error_disponibilidad': True
+                })
             
             reserva.Hotel = habitacion.hotel
             reserva.fecha_reserva = timezone.now().date()

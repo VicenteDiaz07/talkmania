@@ -1,0 +1,18 @@
+# Core Django
+Django==5.0
+
+# Database
+PyMySQL==1.1.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# QR Code generation
+qrcode==7.4.2
+Pillow==10.1.0
+
+# Additional dependencies
+asgiref==3.7.2
+sqlparse==0.4.4
+typing_extensions==4.8.0
+tzdata==2023.3
