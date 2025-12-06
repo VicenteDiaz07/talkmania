@@ -3,6 +3,22 @@
 
 {% block title %}Confirmar Reserva - Talkmania{% endblock %}
 
+{% block extra_css %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .flatpickr-day.disabled {
+        color: #ccc !important;
+        cursor: not-allowed !important;
+        background: #f5f5f5 !important;
+    }
+    .flatpickr-day.disabled:hover {
+        background: #f5f5f5 !important;
+        border-color: transparent !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -26,12 +42,16 @@
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.fecha_entrada.id_for_label }}" class="form-label">Fecha de Entrada</label>
                                 {{ form.fecha_entrada }}
-                                <small class="text-muted">Las fechas ocupadas están deshabilitadas</small>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="fas fa-info-circle"></i> Las fechas ocupadas no se pueden seleccionar
+                                </small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.fecha_salida.id_for_label }}" class="form-label">Fecha de Salida</label>
                                 {{ form.fecha_salida }}
-                                <small class="text-muted">Las fechas ocupadas están deshabilitadas</small>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="fas fa-info-circle"></i> Las fechas ocupadas no se pueden seleccionar
+                                </small>
                             </div>
                         </div>
 
@@ -51,6 +71,10 @@
     </div>
 </div>
 
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const habitacionId = {{ habitacion.id }};
@@ -63,69 +87,77 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             const fechasOcupadas = data.occupied_dates;
             
-            // Función para verificar si una fecha está ocupada
-            function estaOcupada(fecha) {
-                return fechasOcupadas.includes(fecha);
-            }
-            
-            // Función para deshabilitar fechas ocupadas
-            function deshabilitarFechasOcupadas(input) {
-                input.addEventListener('input', function() {
-                    const fechaSeleccionada = this.value;
-                    if (estaOcupada(fechaSeleccionada)) {
-                        alert('⚠️ Esta fecha no está disponible. Por favor, selecciona otra fecha.');
-                        this.value = '';
+            // Configurar Flatpickr para fecha de entrada
+            const fpEntrada = flatpickr(fechaEntradaInput, {
+                locale: 'es',
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                disable: fechasOcupadas, // Deshabilitar fechas ocupadas
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Actualizar fecha mínima de salida
+                    if (selectedDates.length > 0) {
+                        const minSalida = new Date(selectedDates[0]);
+                        minSalida.setDate(minSalida.getDate() + 1);
+                        fpSalida.set('minDate', minSalida);
                     }
-                });
-            }
-            
-            // Aplicar a ambos inputs
-            deshabilitarFechasOcupadas(fechaEntradaInput);
-            deshabilitarFechasOcupadas(fechaSalidaInput);
-            
-            // Validar rango de fechas
-            fechaSalidaInput.addEventListener('input', function() {
-                const fechaEntrada = new Date(fechaEntradaInput.value);
-                const fechaSalida = new Date(this.value);
-                
-                if (fechaSalida <= fechaEntrada) {
-                    alert('⚠️ La fecha de salida debe ser posterior a la fecha de entrada.');
-                    this.value = '';
-                    return;
-                }
-                
-                // Verificar si hay fechas ocupadas en el rango
-                const rangoOcupado = verificarRangoOcupado(fechaEntradaInput.value, this.value, fechasOcupadas);
-                if (rangoOcupado) {
-                    alert('⚠️ Hay fechas ocupadas en el rango seleccionado. Por favor, elige otras fechas.');
-                    this.value = '';
+                },
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    // Agregar tooltip a fechas deshabilitadas
+                    if (fechasOcupadas.includes(dayElem.dateObj.toISOString().split('T')[0])) {
+                        dayElem.title = 'Fecha ocupada';
+                    }
                 }
             });
             
-            // Establecer fecha mínima como hoy
-            const hoy = new Date().toISOString().split('T')[0];
-            fechaEntradaInput.setAttribute('min', hoy);
-            fechaSalidaInput.setAttribute('min', hoy);
+            // Configurar Flatpickr para fecha de salida
+            const fpSalida = flatpickr(fechaSalidaInput, {
+                locale: 'es',
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                disable: [
+                    ...fechasOcupadas,
+                    // Función para deshabilitar si hay fechas ocupadas en el rango
+                    function(date) {
+                        if (!fechaEntradaInput.value) return false;
+                        
+                        const fechaEntrada = new Date(fechaEntradaInput.value);
+                        const fechaActual = new Date(date);
+                        
+                        // Si la fecha es antes de la entrada, deshabilitar
+                        if (fechaActual <= fechaEntrada) return true;
+                        
+                        // Verificar si hay fechas ocupadas entre entrada y esta fecha
+                        let tempDate = new Date(fechaEntrada);
+                        tempDate.setDate(tempDate.getDate() + 1);
+                        
+                        while (tempDate < fechaActual) {
+                            const tempDateStr = tempDate.toISOString().split('T')[0];
+                            if (fechasOcupadas.includes(tempDateStr)) {
+                                return true; // Deshabilitar si hay una fecha ocupada en el medio
+                            }
+                            tempDate.setDate(tempDate.getDate() + 1);
+                        }
+                        
+                        return false;
+                    }
+                ],
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+                    if (fechasOcupadas.includes(dateStr)) {
+                        dayElem.title = 'Fecha ocupada';
+                    }
+                }
+            });
+            
+            // Actualizar calendario de salida cuando cambia la entrada
+            fechaEntradaInput.addEventListener('change', function() {
+                fpSalida.redraw();
+            });
         })
         .catch(error => {
             console.error('Error al obtener fechas ocupadas:', error);
+            alert('Error al cargar las fechas disponibles. Por favor, recarga la página.');
         });
 });
-
-// Función para verificar si hay fechas ocupadas en un rango
-function verificarRangoOcupado(fechaInicio, fechaFin, fechasOcupadas) {
-    const inicio = new Date(fechaInicio);
-    const fin = new Date(fechaFin);
-    const fechaActual = new Date(inicio);
-    
-    while (fechaActual < fin) {
-        const fechaStr = fechaActual.toISOString().split('T')[0];
-        if (fechasOcupadas.includes(fechaStr)) {
-            return true;
-        }
-        fechaActual.setDate(fechaActual.getDate() + 1);
-    }
-    return false;
-}
 </script>
 {% endblock %}

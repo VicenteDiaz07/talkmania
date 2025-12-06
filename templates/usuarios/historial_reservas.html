@@ -1,106 +1,373 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Mis Reservas{% endblock %}
+{% block title %}Mis Reservas - Talkmania{% endblock %}
 
-{% block header %}Historial de Reservas{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .reserva-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border-left: 5px solid #6B5B95;
+    }
+    .reserva-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+    .reserva-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .reserva-id {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #6B5B95;
+    }
+    .badge-estado {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .badge-completada {
+        background: #E8F5E1;
+        color: #7ED957;
+    }
+    .badge-pendiente {
+        background: #FFF3CD;
+        color: #FFA500;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #6B5B95, #7ED957);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .info-content {
+        flex: 1;
+    }
+    .info-label {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 3px;
+    }
+    .info-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    .habitaciones-list {
+        background: #F8F9FA;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    .habitacion-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+    .habitacion-item:last-child {
+        margin-bottom: 0;
+    }
+    .btn-action {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-qr {
+        background: #6B5B95;
+        color: white;
+    }
+    .btn-qr:hover {
+        background: #5A4A7F;
+        color: white;
+        transform: translateY(-2px);
+    }
+    .btn-review {
+        background: #7ED957;
+        color: white;
+    }
+    .btn-review:hover {
+        background: #6BC847;
+        color: white;
+        transform: translateY(-2px);
+    }
+    .review-publicada {
+        background: #E8F5E1;
+        color: #7ED957;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    .stats-container {
+        background: linear-gradient(135deg, #6B5B95 0%, #7ED957 100%);
+        border-radius: 15px;
+        padding: 30px;
+        color: white;
+        margin-top: 30px;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .stat-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .empty-state i {
+        font-size: 80px;
+        color: #DDD;
+        margin-bottom: 20px;
+    }
+    .empty-state h3 {
+        color: #666;
+        margin-bottom: 15px;
+    }
+    .empty-state p {
+        color: #999;
+        margin-bottom: 25px;
+    }
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #6B5B95, #7ED957);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+    .btn-primary-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(107, 91, 149, 0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-
-{% if sin_perfil %}
-    <div class="card" style="text-align: center; padding: 40px;">
-        <h3>⚠️ Perfil Incompleto</h3>
-        <p>No tienes un perfil de cliente asociado a tu cuenta.</p>
-        <p>Por favor, contacta al administrador para completar tu registro.</p>
-        <a href="{% url 'home' %}" class="btn mt-20">Volver al Dashboard</a>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 style="color: #6B5B95; font-weight: 700;">
+            <i class="fas fa-history me-2"></i>Mis Reservas
+        </h1>
+        <a href="{% url 'vista_hotel' %}" class="btn-primary-custom">
+            <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+        </a>
     </div>
-{% elif reservas %}
-    {% for reserva in reservas %}
-    <div class="card">
-        <div class="card-title">
-            Reserva #{{ reserva.id }} - {{ reserva.Hotel.nombre }}
+
+    {% if sin_perfil %}
+        <div class="empty-state">
+            <i class="fas fa-user-slash"></i>
+            <h3>⚠️ Perfil Incompleto</h3>
+            <p>No tienes un perfil de cliente asociado a tu cuenta.</p>
+            <p>Por favor, contacta al administrador para completar tu registro.</p>
+            <a href="{% url 'home' %}" class="btn-primary-custom">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+            </a>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-            <div>
-                <strong>Fecha de Reserva:</strong><br>
-                {{ reserva.fecha_reserva }}
+    
+    {% elif reservas %}
+        {% for reserva in reservas %}
+        <div class="reserva-card">
+            <!-- Header -->
+            <div class="reserva-header">
+                <div>
+                    <div class="reserva-id">
+                        <i class="fas fa-ticket-alt me-2"></i>Reserva #{{ reserva.id }}
+                    </div>
+                    <div style="color: #666; margin-top: 5px;">
+                        <i class="fas fa-hotel me-1"></i>{{ reserva.Hotel.nombre }}
+                    </div>
+                </div>
+                <div>
+                    {% if reserva.estado %}
+                        <span class="badge-estado badge-completada">
+                            <i class="fas fa-check-circle me-1"></i>Completada
+                        </span>
+                    {% else %}
+                        <span class="badge-estado badge-pendiente">
+                            <i class="fas fa-clock me-1"></i>Pendiente
+                        </span>
+                    {% endif %}
+                </div>
             </div>
-            <div>
-                <strong>Entrada:</strong><br>
-                {{ reserva.fecha_entrada }}
+
+            <!-- Info Grid -->
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Fecha de Reserva</div>
+                        <div class="info-value">{{ reserva.fecha_reserva|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Check-in</div>
+                        <div class="info-value">{{ reserva.fecha_entrada|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Check-out</div>
+                        <div class="info-value">{{ reserva.fecha_salida|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Monto Total</div>
+                        <div class="info-value" style="color: #7ED957;">CLP ${{ reserva.monto }}</div>
+                    </div>
+                </div>
             </div>
-            <div>
-                <strong>Salida:</strong><br>
-                {{ reserva.fecha_salida }}
-            </div>
-            <div>
-                <strong>💵 Monto:</strong><br>
-                ${{ reserva.monto }}
-            </div>
-        </div>
-        
-        <div style="margin-top: 15px;">
-            <strong>Estado:</strong> 
-            {% if reserva.estado %}
-                <span style="color: green; font-weight: bold;">✅ Completada</span>
-            {% else %}
-                <span style="color: orange; font-weight: bold;">⏳ Pendiente</span>
-            {% endif %}
-        </div>
-        
-        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="{% url 'generar_qr' reserva.id %}" class="btn">📱 Ver Código QR</a>
-            
-            {% if reserva.estado %}
-                {% if not reserva.reviews.exists %}
-                    <a href="{% url 'crear_review' reserva.id %}" class="btn" style="background: #28a745;">⭐ Dejar Reseña</a>
-                {% else %}
-                    <span style="color: green; padding: 10px; background: #d4edda; border-radius: 5px;">
-                        ✓ Reseña publicada
-                    </span>
-                {% endif %}
-            {% endif %}
-        </div>
-        
-        <!-- Mostrar habitaciones si existen -->
-        {% if reserva.habitaciones.exists %}
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
-            <strong>🛏️ Habitaciones:</strong>
-            <ul style="margin-top: 10px;">
+
+            <!-- Habitaciones -->
+            {% if reserva.habitaciones.exists %}
+            <div class="habitaciones-list">
+                <div style="font-weight: 600; color: #6B5B95; margin-bottom: 10px;">
+                    <i class="fas fa-bed me-2"></i>Habitaciones Reservadas
+                </div>
                 {% for res_hab in reserva.habitaciones.all %}
-                    <li>{{ res_hab.habitacion }} - ${{ res_hab.habitacion.precio }}</li>
+                <div class="habitacion-item">
+                    <div>
+                        <i class="fas fa-door-open me-2" style="color: #6B5B95;"></i>
+                        <strong>{{ res_hab.habitacion }}</strong>
+                    </div>
+                    <div style="color: #7ED957; font-weight: 600;">
+                        CLP ${{ res_hab.habitacion.precio }}
+                    </div>
+                </div>
                 {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-    </div>
-    {% endfor %}
-    
-    <!-- Resumen de estadísticas -->
-    <div class="card mt-20" style="background: #f8f9fa;">
-        <h3>📊 Resumen</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-top: 15px;">
-            <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="font-size: 2rem; font-weight: bold; color: #667eea;">{{ total_reservas }}</div>
-                <div style="color: #666; margin-top: 5px;">Total de Reservas</div>
             </div>
-            <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="font-size: 2rem; font-weight: bold; color: #28a745;">{{ reservas_completadas }}</div>
-                <div style="color: #666; margin-top: 5px;">Completadas</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="font-size: 2rem; font-weight: bold; color: #ffc107;">{{ reservas_pendientes }}</div>
-                <div style="color: #666; margin-top: 5px;">Pendientes</div>
-            </div>
-        </div>
-    </div>
-    
-{% else %}
-    <div class="card" style="text-align: center; padding: 40px;">
-        <h3>📭 No tienes reservas</h3>
-        <p>Aún no has realizado ninguna reserva en Talkmania.</p>
-        <p>¡Explora nuestros hoteles y haz tu primera reserva!</p>
-        <a href="{% url 'home' %}" class="btn mt-20">Explorar Hoteles</a>
-    </div>
-{% endif %}
+            {% endif %}
 
+            <!-- Acciones -->
+            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{% url 'generar_qr' reserva.id %}" class="btn-action btn-qr">
+                    <i class="fas fa-qrcode"></i> Ver Código QR
+                </a>
+                
+                {% if reserva.estado %}
+                    {% if not reserva.reviews.exists %}
+                        <a href="{% url 'crear_review' reserva.id %}" class="btn-action btn-review">
+                            <i class="fas fa-star"></i> Dejar Reseña
+                        </a>
+                    {% else %}
+                        <span class="review-publicada">
+                            <i class="fas fa-check-circle me-1"></i>Reseña publicada
+                        </span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Estadísticas -->
+        <div class="stats-container">
+            <h3 style="margin: 0; font-weight: 700;">
+                <i class="fas fa-chart-line me-2"></i>Resumen de Reservas
+            </h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_reservas }}</div>
+                    <div class="stat-label">Total de Reservas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ reservas_completadas }}</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ reservas_pendientes }}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No tienes reservas aún</h3>
+            <p>Aún no has realizado ninguna reserva en Talkmania.</p>
+            <p>¡Explora nuestros hoteles y haz tu primera reserva!</p>
+            <a href="{% url 'vista_hotel' %}" class="btn-primary-custom">
+                <i class="fas fa-search me-2"></i>Explorar Hoteles
+            </a>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
